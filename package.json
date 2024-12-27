@@ -21,6 +21,8 @@
     "geoip-lite": "^1.4.10",
     "helmet": "^8.0.0",
     "hpp": "^0.2.3",
+    "ioredis": "^5.4.2",
+    "joi": "^17.13.3",
     "mongoose": "^8.9.2",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",

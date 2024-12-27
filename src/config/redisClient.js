@@ -1,18 +1,45 @@
-import { createClient } from 'redis';
+// import { createClient } from 'redis';
 
-const redisClient = createClient();
+// const redisClient = createClient();
 
-redisClient.on('error', (err) => console.error('Redis Client Error', err));
+// redisClient.on('error', (err) => console.error('Redis Client Error', err));
 
-const connectRedis = async () => {
-    try {
-        await redisClient.connect();
-        console.log('Connected to Redis!');
-    } catch (error) {
-        console.error('Redis Connection Error:', error);
-    }
-};
+// const connectRedis = async () => {
+//     try {
+//         await redisClient.connect();
+//         console.log('Connected to Redis!');
+//     } catch (error) {
+//         console.error('Redis Connection Error:', error);
+//     }
+// };
 
-connectRedis();
+// connectRedis();
 
-export default redisClient;
+// export default redisClient;
+
+import Redis from 'ioredis';
+
+const redis = new Redis({
+    host: "redis",
+    port: 6379,
+    retryStrategy: (times) => Math.min(times * 50, 2000),
+    password: '', // Password if Redis is protected (leave empty if no password)
+    db: 0, // Database index (default is 0)
+});
+// const redis = new Redis({
+//     host: "localhost", // Use Redis service name in Docker
+//     port: 6379,
+//     retryStrategy: (times) => Math.min(times * 50, 2000),
+//     password: '', // Password if Redis is protected (leave empty if no password)
+//     db: 0, // Database index (default is 0)
+// });
+
+redis.on("connect", function () {
+    console.log("Connected to Redis...");
+});
+
+redis.on("error", function (err) {
+    console.log("Redis error: " + err);
+});
+
+export default redis;

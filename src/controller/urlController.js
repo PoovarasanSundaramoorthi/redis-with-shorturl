@@ -1,6 +1,7 @@
 import geoip from "geoip-lite";
 import URL from "../models/urlModel.js";
 import BaseController, { dataStore } from "./baseController.js";
+import redis from "../config/redisClient.js";
 
 
 const baseController = new BaseController();
@@ -46,6 +47,13 @@ export async function getShortAlias(req, res, next) {
         console.log('req.params :>> ', req.params);
         const { alias } = req.params;
 
+        // Check if the short URL data is cached in Redis
+        const cachedUrl = await redis.get(`shortUrl:${alias}`);
+        if (cachedUrl) {
+            // If cached, return the data from Redis
+            return res.json(JSON.parse(cachedUrl));
+        }
+
         if (!alias) {
             console.log('alias :>> ', true);
             return baseController.errorResponse(res, 404, "Alias is required");
@@ -71,6 +79,8 @@ export async function getShortAlias(req, res, next) {
         url.analytics.push(analyticsData);
         console.log('url :>> ', url);
         await url.save();
+        // Cache the URL data in Redis for 1 hour (3600 seconds)
+        await redis.set(`shortUrl:${alias}`, JSON.stringify(url.originalUrl), 'EX', 3600);
 
         res.redirect(url.originalUrl);
     } catch (error) {

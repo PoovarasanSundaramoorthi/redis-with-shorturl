@@ -1,6 +1,8 @@
 import express from "express";
 import { getShortAlias, shorten } from "../controller/urlController.js";
 import rateLimit from "express-rate-limit";
+import { createShortValidation, getShortAliasValidation } from "../validation/shortUrlValidation.js";
+import validate from "../validation/index.js";
 
 const urlRouter = express.Router();
 // Define rate limiting rules
@@ -15,7 +17,7 @@ const createShortUrlLimiter = rateLimit({
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
-urlRouter.post('/shorten', createShortUrlLimiter, shorten)
-urlRouter.get('/shorten/:alias', getShortAlias)
+urlRouter.post('/shorten', validate(createShortValidation), createShortUrlLimiter, shorten)
+urlRouter.get('/shorten/:alias', validate(getShortAliasValidation), getShortAlias)
 
 export default urlRouter
