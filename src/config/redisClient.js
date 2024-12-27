@@ -18,10 +18,11 @@
 // export default redisClient;
 
 import Redis from 'ioredis';
+import { redisHost, redisPort } from './envconfig';
 
 const redis = new Redis({
-    host: "redis",
-    port: 6379,
+    host: redisHost,
+    port: redisPort,
     retryStrategy: (times) => Math.min(times * 50, 2000),
     password: '', // Password if Redis is protected (leave empty if no password)
     db: 0, // Database index (default is 0)
