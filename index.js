@@ -3,66 +3,63 @@ import http from 'http';
 import { configDotenv } from 'dotenv';
 import { databaseUrl } from './src/config/envconfig.js';
 import mongoose from 'mongoose';
-import cluster from 'cluster';
-import os from 'os'
 
+// Load environment variables from .env file
 configDotenv({
-    path: './.env'
-})
-const port = process.env.PORT || 5000;
-console.log('port :>> ', port);
-process.on('uncaughtException', (err) => {
-    console.log('Uncaught Exception ');
-    console.log(err.name, err.message, err);
-    process.exit(1)
-})
-console.log('databaseUrl :>> ', databaseUrl);
-mongoose.connect(databaseUrl).then(() => {
-    console.log('Successfully connected to MongoDB');
-}).catch((err) => {
-    console.error('Error connecting to MongoDB:', err);
+    path: './.env',
 });
 
-if (cluster.isMaster) {
-    console.log(`Master process ${process.pid} is running`);
-
-    const numCPU = os.cpus().length;
-    for (let i = 0; i < numCPU; i++) {
-        cluster.fork(); // Fork workers based on the number of CPU cores
-    }
-
-    cluster.on('exit', (worker, code, signal) => {
-        console.log(`Worker ${worker.process.pid} died`);
-    });
-
-    // Handle graceful shutdown
-    process.on('SIGTERM', () => {
-        console.log('Master process: Shutting down gracefully');
-        cluster.disconnect(() => {
-            console.log('All workers have been disconnected');
-            process.exit(0); // Exit the master process
-        });
-    });
-
-} else {
-    // Worker processes handle the server creation and incoming requests
-    const server = http.createServer(app);
-
-    server.listen(port, () => {
-        console.log(`Worker ${process.pid} is running on port ${port}`);
-    });
-
-    // Graceful shutdown for workers
-    process.on('SIGTERM', () => {
-        console.log(`Worker ${process.pid}: Shutting down gracefully`);
-        server.close(() => {
-            console.log(`Worker ${process.pid}: Server closed`);
-            process.exit(0); // Exit the worker process
-        });
-    });
+// Ensure PORT is defined in environment variables
+const port = process.env.PORT || 5000;
+if (!process.env.PORT) {
+    console.error('Environment variable PORT is not defined.');
+    process.exit(1);
 }
 
+console.log('Port :>>', port);
+console.log('Database URL :>>', databaseUrl);
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+    process.exit(1); // Exit the process to avoid undefined state
+});
+
+// Connect to MongoDB
+mongoose
+    .connect(databaseUrl, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    .then(() => {
+        console.log('Successfully connected to MongoDB');
+    })
+    .catch((err) => {
+        console.error('Error connecting to MongoDB:', err);
+        process.exit(1); // Exit if the database connection fails
+    });
+
+// Create HTTP server and listen on the specified port
+const server = http.createServer(app);
+
+server.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
+
+// Graceful shutdown for SIGTERM signal
+process.on('SIGTERM', () => {
+    console.log('SIGTERM signal received: closing HTTP server');
+    server.close(() => {
+        console.log('HTTP server closed');
+        mongoose.connection.close(false, () => {
+            console.log('MongoDB connection closed');
+            process.exit(0);
+        });
+    });
+});
+
+// Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
-    console.log('Unhandled Rejection shutting down !!!');
-    console.log(err.name, err.message);
-})
+    console.error('Unhandled Rejection:', err);
+    process.exit(1); // Exit to avoid undefined state
+});
