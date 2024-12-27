@@ -9,20 +9,19 @@ import os from 'os'
 configDotenv({
     path: './.env'
 })
-const dbport = port || 5000
-console.log('dbport :>> ', dbport);
+const port = process.env.PORT || 5000;
+console.log('port :>> ', port);
 process.on('uncaughtException', (err) => {
     console.log('Uncaught Exception ');
-    console.log(err.name, err.message);
+    console.log(err.name, err.message, err);
     process.exit(1)
 })
 console.log('databaseUrl :>> ', databaseUrl);
-mongoose.connect(databaseUrl, { useNewUrlParser: true, useUnifiedTopology: true }).then(() => {
+mongoose.connect(databaseUrl).then(() => {
     console.log('Successfully connected to MongoDB');
-})
-    .catch((err) => {
-        console.error('Error connecting to MongoDB:', err);
-    });
+}).catch((err) => {
+    console.error('Error connecting to MongoDB:', err);
+});
 
 if (cluster.isMaster) {
     console.log(`Master process ${process.pid} is running`);
@@ -49,8 +48,8 @@ if (cluster.isMaster) {
     // Worker processes handle the server creation and incoming requests
     const server = http.createServer(app);
 
-    server.listen(dbport, () => {
-        console.log(`Worker ${process.pid} is running on port ${dbport}`);
+    server.listen(port, () => {
+        console.log(`Worker ${process.pid} is running on port ${port}`);
     });
 
     // Graceful shutdown for workers
