@@ -10,14 +10,14 @@ configDotenv({
     path: './.env'
 })
 const dbport = port || 5000
-
+console.log('dbport :>> ', dbport);
 process.on('uncaughtException', (err) => {
     console.log('Uncaught Exception ');
     console.log(err.name, err.message);
     process.exit(1)
 })
 console.log('databaseUrl :>> ', databaseUrl);
-mongoose.connect(databaseUrl).then(() => {
+mongoose.connect(databaseUrl, { useNewUrlParser: true, useUnifiedTopology: true }).then(() => {
     console.log('Successfully connected to MongoDB');
 })
     .catch((err) => {

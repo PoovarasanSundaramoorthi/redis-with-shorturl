@@ -19,7 +19,6 @@
 
 import Redis from 'ioredis';
 import { redisHost, redisPort } from './envconfig.js';
-console.log('redisHost, redisPort :>> ', redisHost, redisPort);
 const redis = new Redis({
     host: redisHost,
     port: redisPort,
