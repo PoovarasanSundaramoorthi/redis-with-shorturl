@@ -1,7 +1,7 @@
 import app from './src/app.js';
 import http from 'http';
 import { configDotenv } from 'dotenv';
-import { databaseUrl, port } from './src/config/envconfig.js';
+import { databaseUrl } from './src/config/envconfig.js';
 import mongoose from 'mongoose';
 import cluster from 'cluster';
 import os from 'os'
