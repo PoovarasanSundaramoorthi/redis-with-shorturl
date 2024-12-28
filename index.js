@@ -27,10 +27,7 @@ process.on('uncaughtException', (err) => {
 
 // Connect to MongoDB
 mongoose
-    .connect(databaseUrl, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    .connect(databaseUrl)
     .then(() => {
         console.log('Successfully connected to MongoDB');
     })
